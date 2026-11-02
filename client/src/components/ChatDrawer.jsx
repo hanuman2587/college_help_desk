@@ -35,7 +35,8 @@ export default function ChatDrawer({ open, onClose }) {
             const data = await sendMessage(messageText);
             const botMsg = { id: Date.now() + 1, text: data.message, sender: "bot" };
             setMessages((prev) => [...prev, botMsg]);
-        } catch {
+        } catch (error) {
+            console.error("Chat request failed:", error);
             const errorMsg = { id: Date.now() + 1, text: "Sorry, something went wrong. Please try again.", sender: "bot" };
             setMessages((prev) => [...prev, errorMsg]);
         } finally {

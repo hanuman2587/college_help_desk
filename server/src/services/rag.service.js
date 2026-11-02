@@ -110,45 +110,40 @@ export const initializeKnowledgeBase = async () => {
 };
 
 export const getRAGResponse = async (question) => {
-    try {
-        const vectorStore = await getVectorStore();
+    const vectorStore = await getVectorStore();
 
-        // RETRIEVE: Search for the 3 most relevant chunks
-        const retrievedDocs = await vectorStore.similaritySearch(question, 3);
+    // RETRIEVE: Search for the 3 most relevant chunks
+    const retrievedDocs = await vectorStore.similaritySearch(question, 3);
 
-        if (retrievedDocs.length === 0) {
-            return "I don't have that information right now. Please contact the college office for assistance.";
-        }
+    if (retrievedDocs.length === 0) {
+        return "I don't have that information right now. Please contact the college office for assistance.";
+    }
 
-        // AUGMENT: Combine retrieved chunks into a single context string
-        const context = retrievedDocs
-            .map((doc) => doc.pageContent)
-            .join("\n\n");
+    // AUGMENT: Combine retrieved chunks into a single context string
+    const context = retrievedDocs
+        .map((doc) => doc.pageContent)
+        .join("\n\n");
 
-        // GENERATE: Send context + question to AI for a natural answer
-        const model = new ChatGoogleGenerativeAI({
-            model: "gemini-2.5-flash",
-            apiKey: process.env.GOOGLE_API_KEY,
-            temperature: 0.7,
-        });
+    // GENERATE: Send context + question to AI for a natural answer
+    const model = new ChatGoogleGenerativeAI({
+        model: "gemini-2.5-flash",
+        apiKey: process.env.GOOGLE_API_KEY,
+        temperature: 0.7,
+    });
 
-        const result = await model.invoke([
-            {
-                role: "system",
-                content: `You are EduReach Bot, a helpful college assistant. 
+    const result = await model.invoke([
+        {
+            role: "system",
+            content: `You are EduReach Bot, a helpful college assistant. 
 Answer questions based ONLY on the following context. 
 If the answer is not in the context, say you don't have that information.
 Be friendly, concise, and accurate.
 
 Context:
 ${context}`,
-            },
-            { role: "user", content: question },
-        ]);
+        },
+        { role: "user", content: question },
+    ]);
 
-        return result.content;
-    } catch (error) {
-        console.error(`[RAG] EXCEPTION:, ${error.message}`);
-        return "I'm having trouble right now. Please try again or contact the college office for assistance.";
-    }
+    return result.content;
 };
